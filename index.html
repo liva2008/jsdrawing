@@ -1,42 +1,39 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=5,IE=9" ><![endif]-->
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>jsDrawing</title>
+	<title>jsDrawing</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="stylesheet" type="text/css" href="styles/grapheditor.css">
-    <script src="styles/default.js"></script>
-    <script src="resources/grapheditor.js"></script>
+	<link rel="stylesheet" type="text/css" href="styles/grapheditor.css">
+	<script src="styles/default.js"></script>
+	<script src="resources/grapheditor.js"></script>
 	<script type="text/javascript">
 		// Parses URL parameters. Supported parameters are:
 		// - lang=xy: Specifies the language of the user interface.
 		// - touch=1: Enables a touch-style user interface.
 		// - storage=local: Enables HTML5 local storage.
 		// - chrome=0: Chromeless mode.
-		var urlParams = (function(url)
-		{
+		var urlParams = (function (url) {
 			var result = new Object();
 			var idx = url.lastIndexOf('?');
-	
-			if (idx > 0)
-			{
+
+			if (idx > 0) {
 				var params = url.substring(idx + 1).split('&');
-				
-				for (var i = 0; i < params.length; i++)
-				{
+
+				for (var i = 0; i < params.length; i++) {
 					idx = params[i].indexOf('=');
-					
-					if (idx > 0)
-					{
+
+					if (idx > 0) {
 						result[params[i].substring(0, idx)] = params[i].substring(idx + 1);
 					}
 				}
 			}
-			
+
 			return result;
 		})(window.location.href);
-	
+
 		// Default resources are included in grapheditor resources
 		mxLoadResources = false;
 	</script>
@@ -56,30 +53,27 @@
 	<script type="text/javascript" src="js/Menus.js"></script>
 	<script type="text/javascript" src="js/Toolbar.js"></script>
 	<script type="text/javascript" src="js/Dialogs.js"></script>
-	
+
 	<script src="utils/ponyfill.min.js"></script>
-    <script src="utils/Blob.js"></script>
-    <script src="utils/StreamSaver.js"></script>
+	<script src="utils/Blob.js"></script>
+	<script src="utils/StreamSaver.js"></script>
 </head>
+
 <body class="geEditor">
 	<script type="text/javascript">
 		// Extends EditorUi to update I/O action states based on availability of backend
-		(function()
-		{
+		(function () {
 			var editorUiInit = EditorUi.prototype.init;
-			
-			
-			EditorUi.prototype.init = function()
-			{
+
+
+			EditorUi.prototype.init = function () {
 				editorUiInit.apply(this, arguments);
 				this.actions.get('export').setEnabled(true);
 
 				// Updates action states which require a backend
 				Editor.useLocalStorage = false;
-				if (!Editor.useLocalStorage)
-				{
-					mxUtils.post(OPEN_URL, '', mxUtils.bind(this, function(req)
-					{
+				if (!Editor.useLocalStorage) {
+					mxUtils.post(OPEN_URL, '', mxUtils.bind(this, function (req) {
 						var enabled = req.getStatus() != 404;
 						this.actions.get('open').setEnabled(enabled || Graph.fileSupport);
 						this.actions.get('import').setEnabled(enabled || Graph.fileSupport);
@@ -119,7 +113,7 @@
 				localStorage.setItem("jsWorking", xml);
 			});
 			*/
-			
+
 			// Adds required resources (disables loading of fallback properties, this can only
 			// be used if we know that all keys are defined in the language specific file)
 			mxResources.loadDefaultBundle = false;
@@ -127,52 +121,54 @@
 				mxResources.getSpecialBundle(RESOURCE_BASE, mxLanguage);
 
 			// Fixes possible asynchronous requests
-			mxUtils.getAll([bundle, STYLE_PATH + '/default.xml'], function(xhr)
-			{
+			mxUtils.getAll([bundle, STYLE_PATH + '/default.xml'], function (xhr) {
 				// Adds bundle text to resources
 				mxResources.parse(xhr[0].getText());
-				
+
 				// Configures the default graph theme
 				var themes = new Object();
-				themes[Graph.prototype.defaultThemeName] = xhr[1].getDocumentElement(); 
-				
+				themes[Graph.prototype.defaultThemeName] = xhr[1].getDocumentElement();
+
 				// Main
 				let editorUi = new EditorUi(new Editor(urlParams['chrome'] == '0', themes));
-				
+
 				//启动时加载缓存
-				console.log(localStorage.getItem("jsWorking"));
-				var doc = mxUtils.parseXml(localStorage.getItem("jsWorking")); 
-				editorUi.editor.setGraphXml(doc.documentElement);
-				editorUi.editor.setModified(false);
-				
+				//console.log(localStorage.getItem("jsWorking"));
+				if (localStorage.getItem("jsWorking") != null) {
+					var doc = mxUtils.parseXml(localStorage.getItem("jsWorking"));
+					editorUi.editor.setGraphXml(doc.documentElement);
+					editorUi.editor.setModified(false);
+				}
+
 				//暂存
-				editorUi.container.addEventListener("keydown",function(e){
+				editorUi.container.addEventListener("keydown", function (e) {
 					console.log("key");
 					var xml = mxUtils.getXml(editorUi.editor.getGraphXml());
 					localStorage.setItem("jsWorking", xml);
 				});
 				//暂存
-				editorUi.container.addEventListener("mousedown",function(e){
+				editorUi.container.addEventListener("mousedown", function (e) {
 					console.log("mouse");
 					var xml = mxUtils.getXml(editorUi.editor.getGraphXml());
 					localStorage.setItem("jsWorking", xml);
 				});
-				
-			}, function()
-			{
-				document.body.innerHTML = '<center style="margin-top:10%;">Error loading resource files. Please check browser console.</center>';
+
+			}, function () {
+				document.body.innerHTML =
+					'<center style="margin-top:10%;">Error loading resource files. Please check browser console.</center>';
 			});
 		})();
 	</script>
 	<script>
 		var _hmt = _hmt || [];
-		(function() {
-		  var hm = document.createElement("script");
-		  hm.src = "https://hm.baidu.com/hm.js?2a46fcd1138a4e99c48a726643a4be20";
-		  var s = document.getElementsByTagName("script")[0]; 
-		  s.parentNode.insertBefore(hm, s);
+		(function () {
+			var hm = document.createElement("script");
+			hm.src = "https://hm.baidu.com/hm.js?2a46fcd1138a4e99c48a726643a4be20";
+			var s = document.getElementsByTagName("script")[0];
+			s.parentNode.insertBefore(hm, s);
 		})();
-		</script>
-		
+	</script>
+
 </body>
+
 </html>
